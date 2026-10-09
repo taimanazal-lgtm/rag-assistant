@@ -20,7 +20,7 @@ The goal is a hallucination-resistant assistant that answers questions grounded 
 
 ### Approach
 - **Data source:** the official ArXiv API. Abstracts are short and clean, and each paper keeps its ID and URL so answers can cite sources later.
-- **Variety:** 4 categories (2,500 papers requested from each, duplicates across categories removed) so topic modeling in later weeks has distinct themes.
+- **Validation:** `build_clean_corpus.py` asserts at least 5,000 documents, unique IDs, and no empty text, and counts leftover backslashes. Inspecting the real output (not only the unit tests) found three rounds of LaTeX leftovers (escaped braces, spacing commands like `\,`, math delimiters, `\|`, `\-`). Each was fixed and covered by a new unit test, bringing leftovers from 101 documents down to 0.
 - **Cleaning:** the sample data showed LaTeX markup (`\%`, `\emph{}`, `$...$`), so cleaning focuses on that. HTML removal only targets real tags, so math such as `x < y` is not damaged.
 - **Validation:** `build_clean_corpus.py` asserts at least 5,000 documents, unique IDs, and no empty text. Inspecting the output found a bug (escaped braces `\{ \}` left stray backslashes in 12 documents). It was fixed and covered by a new test.
 
@@ -29,15 +29,28 @@ The goal is a hallucination-resistant assistant that answers questions grounded 
 |--------|-------|
 | Raw documents | 8,076 |
 | Clean documents | 8,076 |
+| Abstracts modified by cleaning | 1,925 / 8,076 |
 | Words per document (mean) | ~206 |
 | Words per document (min / max) | 42 / 349 |
-| Unit tests | 13 passed |
-| Documents with leftover LaTeX commands | 0 |
+| Unit tests | 21 passed |
+
+Cleaning effect on abstracts (number of abstracts containing each issue):
+
+| Issue | Before | After |
+|-------|--------|-------|
+| Backslash (LaTeX) | 1,356 | 0 |
+| Curly braces | 756 | 0 |
+| Newlines / tabs | 257 | 0 |
+| Double spaces | 258 | 0 |
+| Dollar sign (`$`) | 1,246 | 23 |
+
+The 23 remaining `$` are real currency amounts (e.g. `$5,694`), kept on purpose. Reproduce with `python scripts/compare_before_after.py`.
 
 ### Known limitations
 - LaTeX math is stripped, so some symbols (e.g. `\geq`, `\leq`) are lost from formulas.
 - Some words appear glued together (e.g. `timeto`). They already exist in the downloaded data, so they are left as is rather than risking damage to valid words.
 - No papers were removed by the length, duplicate or language filters, because the source is clean English text. The filters are tested through the unit tests.
+- Currency symbols (`$`) are preserved, so a few documents with unpaired math `$` may keep a stray dollar sign.
 
 ## Project structure
 ```
@@ -48,7 +61,9 @@ rag-assistant/
 ├── scripts/
 │   ├── verify_env.py        # environment check (GPU, imports, spaCy, ChromaDB)
 │   ├── download_data.py     # downloads ArXiv papers
-│   ├── build_clean_corpus.py# cleans + validates + saves the corpus
+│   ├── build_clean_corpus.py# cleans + 
+│   ├── compare_before_after.py # before/after cleaning statistics
+validates + saves the corpus
 │   └── inspect_leftovers.py # debugging helper for leftover LaTeX
 ├── src/
 │   └── preprocessing.py     # cleaning functions
@@ -86,6 +101,9 @@ python scripts/download_data.py
 
 # 3. Clean and validate the corpus
 python -m scripts.build_clean_corpus
+
+# 3b. See what the cleaning changed
+python scripts/compare_before_after.py
 
 # 4. Run the unit tests
 pytest -v

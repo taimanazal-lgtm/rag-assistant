@@ -64,3 +64,33 @@ def test_clean_text_is_idempotent():
     
 def test_clean_latex_escaped_braces():
     assert clean_latex(r"values in \{p,q\}") == "values in p,q"
+
+def test_clean_text_latex_thin_space():
+    assert clean_text(r"0.40\,m") == "0.40 m"
+
+
+def test_clean_text_backslash_space():
+    assert clean_text(r"vs.\ 42") == "vs. 42"
+
+
+def test_clean_text_inline_math_delimiters():
+    assert clean_text(r"we prove \(O(T)\) regret") == "we prove O(T) regret"
+
+
+def test_clean_text_keeps_currency():
+    assert clean_text(r"cost \$5,694 total") == "cost $5,694 total"
+    
+def test_clean_text_line_break():
+    assert clean_text(r"Operators:\\ Determines") == "Operators: Determines"
+
+
+def test_clean_text_optional_hyphen():
+    assert clean_text(r"al\-ter\-na\-ting") == "alternating"
+
+
+def test_clean_text_norm_bars():
+    assert clean_text(r"\|x\|^2") == "|x|^2"
+
+
+def test_clean_text_stray_backslash():
+    assert clean_text(r"at most 1\.23") == "at most 1.23"

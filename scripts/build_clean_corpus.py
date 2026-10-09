@@ -38,9 +38,8 @@ def main():
     assert df["id"].is_unique, "Duplicate ids found"
     assert df["text"].notna().all(), "Null text found"
     assert (df["text"].str.len() > 0).all(), "Empty text found"
-    leftover = df["text"].str.contains(r"\\[a-zA-Z]+", regex=True).sum()
-    print(f"Docs with leftover LaTeX commands: {leftover}")
-
+    leftover = df["text"].str.contains("\\", regex=False).sum()
+    print(f"Docs with leftover backslashes: {leftover}")
     df.to_parquet(OUT_PATH, index=False)
     print(f"\nSaved {len(df)} clean documents to {OUT_PATH}")
     print(df["n_words"].describe())

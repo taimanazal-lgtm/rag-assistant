@@ -27,6 +27,8 @@ def normalize_unicode(text: str) -> str:
 
 def clean_latex(text: str) -> str:
     """Remove LaTeX markup but keep the readable content."""
+    # \\ (line break) -> space
+    text = re.sub(r"\\\\", " ", text)
     # \emph{word} -> word
     text = re.sub(
         r"\\(?:emph|textbf|textit|texttt|text|mathrm|mathbf|mathcal)\{([^{}]*)\}",
@@ -35,10 +37,18 @@ def clean_latex(text: str) -> str:
     )
     # $x^2$ -> x^2 (keep the content, drop the $ signs)
     text = re.sub(r"(?<!\\)\$([^$]*)\$", r"\1", text)
-    # \% -> %   \& -> &   \_ -> _
+    # \% -> %   \& -> &   \_ -> _   \{ -> {
     text = re.sub(r"\\([%&_#${}])", r"\1", text)
+    # \, \; \: \! and "\ " (LaTeX spacing) -> space
+    text = re.sub(r"\\[,;:! ]", " ", text)
+    # \( \) \[ \] (math delimiters) -> removed
+    text = re.sub(r"\\[()\[\]]", "", text)
+    # \- (optional hyphen) -> removed
+    text = text.replace("\\-", "")
     # remaining commands like \times
     text = re.sub(r"\\[a-zA-Z]+", " ", text)
+    # any stray backslash left (e.g. \| or \.) -> removed
+    text = text.replace("\\", "")
     return re.sub(r"[{}]", "", text)
 
 
