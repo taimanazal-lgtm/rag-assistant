@@ -36,7 +36,7 @@ def clean_latex(text: str) -> str:
     # $x^2$ -> x^2 (keep the content, drop the $ signs)
     text = re.sub(r"(?<!\\)\$([^$]*)\$", r"\1", text)
     # \% -> %   \& -> &   \_ -> _
-    text = re.sub(r"\\([%&_#$])", r"\1", text)
+    text = re.sub(r"\\([%&_#${}])", r"\1", text)
     # remaining commands like \times
     text = re.sub(r"\\[a-zA-Z]+", " ", text)
     return re.sub(r"[{}]", "", text)

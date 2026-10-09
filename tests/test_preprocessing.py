@@ -61,3 +61,6 @@ def test_clean_text_is_idempotent():
     raw = r"<b>Hi</b>  50\% \emph{x}"
     once = clean_text(raw)
     assert clean_text(once) == once
+    
+def test_clean_latex_escaped_braces():
+    assert clean_latex(r"values in \{p,q\}") == "values in p,q"
