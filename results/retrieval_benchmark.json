@@ -1,0 +1,475 @@
+{
+  "device": "cuda",
+  "n_chunks": 21967,
+  "k": 5,
+  "repeats": 20,
+  "per_query": [
+    {
+      "type": "short keyword",
+      "query": "transformers",
+      "where": null,
+      "embed": {
+        "mean_ms": 6.27,
+        "p50_ms": 5.93,
+        "p95_ms": 7.7,
+        "max_ms": 8.33
+      },
+      "search": {
+        "mean_ms": 3.3,
+        "p50_ms": 3.21,
+        "p95_ms": 3.79,
+        "max_ms": 3.85
+      },
+      "total": {
+        "mean_ms": 9.57,
+        "p50_ms": 9.39,
+        "p95_ms": 10.92,
+        "max_ms": 12.18
+      },
+      "top_results": [
+        {
+          "title": "Fully Interpretable Minimal Transformers: From Geometry to Algorithm",
+          "similarity": 0.51,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.09838v1"
+        },
+        {
+          "title": "SO(3)-RoPE for Spherical Transformers",
+          "similarity": 0.463,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.06229v1"
+        },
+        {
+          "title": "How Do Transformers Learn to Represent Symmetries?",
+          "similarity": 0.459,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.10305v1"
+        }
+      ]
+    },
+    {
+      "type": "short keyword",
+      "query": "reinforcement learning",
+      "where": null,
+      "embed": {
+        "mean_ms": 5.86,
+        "p50_ms": 5.4,
+        "p95_ms": 7.55,
+        "max_ms": 7.62
+      },
+      "search": {
+        "mean_ms": 3.13,
+        "p50_ms": 3.1,
+        "p95_ms": 3.38,
+        "max_ms": 3.59
+      },
+      "total": {
+        "mean_ms": 8.99,
+        "p50_ms": 8.47,
+        "p95_ms": 10.8,
+        "max_ms": 11.13
+      },
+      "top_results": [
+        {
+          "title": "Towards Optimal Policy Improvement",
+          "similarity": 0.585,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.01566v1"
+        },
+        {
+          "title": "Strategic Investment Decision Making for Value Creation in Energy Transition: A Reinforcement Learning Approach",
+          "similarity": 0.582,
+          "category": "cs.CE",
+          "url": "http://arxiv.org/abs/2610.10768v1"
+        },
+        {
+          "title": "When Do Intrinsic Rewards Lead to Exploration?",
+          "similarity": 0.578,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.02159v1"
+        }
+      ]
+    },
+    {
+      "type": "question",
+      "query": "How do large language models handle long context windows?",
+      "where": null,
+      "embed": {
+        "mean_ms": 5.73,
+        "p50_ms": 5.3,
+        "p95_ms": 7.71,
+        "max_ms": 9.21
+      },
+      "search": {
+        "mean_ms": 3.27,
+        "p50_ms": 3.23,
+        "p95_ms": 3.73,
+        "max_ms": 3.84
+      },
+      "total": {
+        "mean_ms": 9.0,
+        "p50_ms": 8.51,
+        "p95_ms": 11.07,
+        "max_ms": 12.94
+      },
+      "top_results": [
+        {
+          "title": "Trained Agentic Context Management",
+          "similarity": 0.701,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.02404v1"
+        },
+        {
+          "title": "Mechanics of Long-Context Hybrid Models Part 1.1: From Hybrid Attention to Hybrid Position",
+          "similarity": 0.676,
+          "category": "cs.CL",
+          "url": "http://arxiv.org/abs/2610.10114v1"
+        },
+        {
+          "title": "Periscope: Extending Frozen Language Models Beyond Their Context Window",
+          "similarity": 0.633,
+          "category": "cs.CL",
+          "url": "http://arxiv.org/abs/2610.04047v1"
+        }
+      ]
+    },
+    {
+      "type": "question",
+      "query": "What methods reduce hallucination in language models?",
+      "where": null,
+      "embed": {
+        "mean_ms": 7.3,
+        "p50_ms": 7.48,
+        "p95_ms": 9.29,
+        "max_ms": 9.51
+      },
+      "search": {
+        "mean_ms": 4.11,
+        "p50_ms": 3.65,
+        "p95_ms": 5.35,
+        "max_ms": 8.58
+      },
+      "total": {
+        "mean_ms": 11.41,
+        "p50_ms": 11.1,
+        "p95_ms": 14.85,
+        "max_ms": 17.86
+      },
+      "top_results": [
+        {
+          "title": "DARE to Mitigate Hallucination: Dual-path Auto-Regressive-aware Editing",
+          "similarity": 0.632,
+          "category": "cs.CV",
+          "url": "http://arxiv.org/abs/2609.36440v1"
+        },
+        {
+          "title": "From Suppression to Repair: Mitigating Object Hallucination in Large Vision-Language Models via Localized Distribution Alignment",
+          "similarity": 0.621,
+          "category": "cs.CV",
+          "url": "http://arxiv.org/abs/2610.11826v1"
+        },
+        {
+          "title": "Beyond Visual Enhancement: Adaptive Multi-Context Steering to Mitigate LVLM Hallucinations",
+          "similarity": 0.618,
+          "category": "cs.CV",
+          "url": "http://arxiv.org/abs/2610.11907v1"
+        }
+      ]
+    },
+    {
+      "type": "question",
+      "query": "How are diffusion models used for image generation?",
+      "where": null,
+      "embed": {
+        "mean_ms": 5.68,
+        "p50_ms": 5.43,
+        "p95_ms": 7.05,
+        "max_ms": 7.53
+      },
+      "search": {
+        "mean_ms": 3.25,
+        "p50_ms": 3.2,
+        "p95_ms": 3.68,
+        "max_ms": 3.77
+      },
+      "total": {
+        "mean_ms": 8.93,
+        "p50_ms": 8.66,
+        "p95_ms": 10.28,
+        "max_ms": 10.6
+      },
+      "top_results": [
+        {
+          "title": "Quantum Diffusion Models for Medical Image Analysis",
+          "similarity": 0.668,
+          "category": "eess.IV",
+          "url": "http://arxiv.org/abs/2609.31070v1"
+        },
+        {
+          "title": "Texture Space Material Diffusion",
+          "similarity": 0.589,
+          "category": "cs.CV",
+          "url": "http://arxiv.org/abs/2609.37654v2"
+        },
+        {
+          "title": "Energy-Conditioned Noise Schedule and Whitening for Spectral Diffusion",
+          "similarity": 0.587,
+          "category": "cs.AI",
+          "url": "http://arxiv.org/abs/2610.07206v1"
+        }
+      ]
+    },
+    {
+      "type": "question",
+      "query": "How can neural networks be made robust against adversarial attacks?",
+      "where": null,
+      "embed": {
+        "mean_ms": 5.79,
+        "p50_ms": 5.4,
+        "p95_ms": 7.22,
+        "max_ms": 7.8
+      },
+      "search": {
+        "mean_ms": 3.17,
+        "p50_ms": 3.14,
+        "p95_ms": 3.48,
+        "max_ms": 3.51
+      },
+      "total": {
+        "mean_ms": 8.96,
+        "p50_ms": 8.55,
+        "p95_ms": 10.61,
+        "max_ms": 11.21
+      },
+      "top_results": [
+        {
+          "title": "ATLAS-AL: Adaptive Trust-Region for Latent Adversarial Searches via Active Learning",
+          "similarity": 0.631,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.07323v1"
+        },
+        {
+          "title": "Adaptive Model Inversion Attacks Generalize a Privacy-Robustness Tradeoff",
+          "similarity": 0.611,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.07677v1"
+        },
+        {
+          "title": "Probabilistic Adversarial Training",
+          "similarity": 0.608,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2609.39798v1"
+        }
+      ]
+    },
+    {
+      "type": "long query",
+      "query": "We study how retrieval-augmented generation improves the factual accuracy of question answering systems by grounding answers in retrieved documents",
+      "where": null,
+      "embed": {
+        "mean_ms": 6.74,
+        "p50_ms": 6.37,
+        "p95_ms": 7.77,
+        "max_ms": 7.9
+      },
+      "search": {
+        "mean_ms": 3.17,
+        "p50_ms": 3.16,
+        "p95_ms": 3.34,
+        "max_ms": 3.34
+      },
+      "total": {
+        "mean_ms": 9.91,
+        "p50_ms": 9.69,
+        "p95_ms": 10.87,
+        "max_ms": 10.96
+      },
+      "top_results": [
+        {
+          "title": "Investigating the Role of Reasoning-Language Alignment in Monolingual Retrieval-Augmented Generation",
+          "similarity": 0.696,
+          "category": "cs.CL",
+          "url": "http://arxiv.org/abs/2610.03136v1"
+        },
+        {
+          "title": "Bridging Static and Agentic RAG for Taiwanese Historical Question Answering",
+          "similarity": 0.682,
+          "category": "cs.CL",
+          "url": "http://arxiv.org/abs/2609.23056v1"
+        },
+        {
+          "title": "Regime Boundary Alignment for Evidence-Gated Question Answering",
+          "similarity": 0.662,
+          "category": "cs.CL",
+          "url": "http://arxiv.org/abs/2609.37491v1"
+        }
+      ]
+    },
+    {
+      "type": "filtered (cs.CV)",
+      "query": "object detection with transformers",
+      "where": {
+        "primary_category": "cs.CV"
+      },
+      "embed": {
+        "mean_ms": 6.47,
+        "p50_ms": 6.1,
+        "p95_ms": 7.96,
+        "max_ms": 7.98
+      },
+      "search": {
+        "mean_ms": 27.28,
+        "p50_ms": 27.19,
+        "p95_ms": 28.26,
+        "max_ms": 28.87
+      },
+      "total": {
+        "mean_ms": 33.75,
+        "p50_ms": 33.39,
+        "p95_ms": 35.45,
+        "max_ms": 35.73
+      },
+      "top_results": [
+        {
+          "title": "Supermarket Product Detection and Recognition: Utilizing Deep Learning with Rectified Imagery",
+          "similarity": 0.551,
+          "category": "cs.CV",
+          "url": "http://arxiv.org/abs/2610.08126v1"
+        },
+        {
+          "title": "Lightweight Vision Transformer-Based U-Net for Brain Tumor Segmentation from MRI",
+          "similarity": 0.528,
+          "category": "cs.CV",
+          "url": "http://arxiv.org/abs/2609.29785v1"
+        },
+        {
+          "title": "RPFQ-ViT: Rotated Phase-Frame Quantization for Extremely Low-Bit Weights in Vision Transformers",
+          "similarity": 0.506,
+          "category": "cs.CV",
+          "url": "http://arxiv.org/abs/2610.04457v1"
+        }
+      ]
+    },
+    {
+      "type": "filtered (cs.CL)",
+      "query": "object detection with transformers",
+      "where": {
+        "primary_category": "cs.CL"
+      },
+      "embed": {
+        "mean_ms": 6.5,
+        "p50_ms": 6.19,
+        "p95_ms": 8.0,
+        "max_ms": 8.49
+      },
+      "search": {
+        "mean_ms": 25.67,
+        "p50_ms": 25.48,
+        "p95_ms": 26.75,
+        "max_ms": 26.87
+      },
+      "total": {
+        "mean_ms": 32.16,
+        "p50_ms": 31.88,
+        "p95_ms": 34.02,
+        "max_ms": 34.84
+      },
+      "top_results": [
+        {
+          "title": "DeBERTa-ConPara: Attack-Aware and Deployment-Realistic Detection of AI-Generated Text",
+          "similarity": 0.398,
+          "category": "cs.CL",
+          "url": "http://arxiv.org/abs/2610.00883v1"
+        },
+        {
+          "title": "Gradients for Interventions and Activations for Detection: Targeted Feature Learning in Language Models",
+          "similarity": 0.361,
+          "category": "cs.CL",
+          "url": "http://arxiv.org/abs/2609.32355v1"
+        },
+        {
+          "title": "Recurrent Looped Transformer",
+          "similarity": 0.349,
+          "category": "cs.CL",
+          "url": "http://arxiv.org/abs/2610.07591v1"
+        }
+      ]
+    },
+    {
+      "type": "off-topic",
+      "query": "best recipe for chocolate cake",
+      "where": null,
+      "embed": {
+        "mean_ms": 6.13,
+        "p50_ms": 5.62,
+        "p95_ms": 7.94,
+        "max_ms": 8.02
+      },
+      "search": {
+        "mean_ms": 4.06,
+        "p50_ms": 4.07,
+        "p95_ms": 4.97,
+        "max_ms": 5.01
+      },
+      "total": {
+        "mean_ms": 10.19,
+        "p50_ms": 10.16,
+        "p95_ms": 11.66,
+        "max_ms": 12.33
+      },
+      "top_results": [
+        {
+          "title": "Score the Update, Not the Token: Descent-Aligned Routing for Combinatorial LoRA Experts",
+          "similarity": 0.231,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.00493v1"
+        },
+        {
+          "title": "Co-PiLOT: Constrained Physics-Informed Latent Optimization for Target-Driven Inverse Design",
+          "similarity": 0.216,
+          "category": "cs.AI",
+          "url": "http://arxiv.org/abs/2609.37875v1"
+        },
+        {
+          "title": "Which Preferences to Train On? End-to-End Multi-Objective Alignment with an Adversarial Preference Distribution",
+          "similarity": 0.209,
+          "category": "cs.LG",
+          "url": "http://arxiv.org/abs/2610.04845v1"
+        }
+      ]
+    }
+  ],
+  "latency_vs_k": {
+    "1": {
+      "mean_ms": 4.0,
+      "p50_ms": 3.82,
+      "p95_ms": 6.22,
+      "max_ms": 7.52
+    },
+    "5": {
+      "mean_ms": 3.56,
+      "p50_ms": 3.5,
+      "p95_ms": 4.73,
+      "max_ms": 4.78
+    },
+    "10": {
+      "mean_ms": 4.04,
+      "p50_ms": 3.86,
+      "p95_ms": 5.16,
+      "max_ms": 5.22
+    },
+    "20": {
+      "mean_ms": 4.54,
+      "p50_ms": 4.61,
+      "p95_ms": 5.94,
+      "max_ms": 5.98
+    },
+    "50": {
+      "mean_ms": 5.22,
+      "p50_ms": 5.21,
+      "p95_ms": 6.32,
+      "max_ms": 7.84
+    }
+  },
+  "self_retrieval_recall_at_1": 1.0
+}
