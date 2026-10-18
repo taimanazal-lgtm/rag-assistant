@@ -1,0 +1,12 @@
+{
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "device": "NVIDIA GeForce MX350",
+  "n_chunks": 21967,
+  "embedding_dim": 384,
+  "batch_size": 64,
+  "max_seq_length": 256,
+  "chunks_over_token_limit": 1,
+  "total_seconds": 187.0,
+  "chunks_per_second": 117.5,
+  "ms_per_chunk": 8.51
+}
