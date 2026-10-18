@@ -90,7 +90,7 @@ The 23 remaining `$` are real currency amounts (e.g. `$5,694`), kept on purpose.
 - Ingestion uses `upsert` in batches of 1,000 (22 s for all chunks), so running it twice never creates duplicates.
 - Metadata: `doc_id`, `chunk_index`, `title`, `categories` (stored as one string, since Chroma does not accept lists), `primary_category`, `url`.
 
-**Edge cases handled and tested** (`tests/test_vector_store.py`): re-ingesting the same data, batch ingestion, embeddings/chunks length mismatch, duplicate chunk ids, empty chunk text, search on an empty collection, `k` larger than the collection, metadata filter with no match, and empty or `None` queries.
+**Edge cases handled and tested** (`tests/test_vector_store.py`): re-ingesting the same data, batch ingestion, embeddings/chunks length mismatch, duplicate chunk ids, search on an empty collection, `k` larger than the collection, metadata filter with no match, and empty or `None` queries.
 
 ### Retrieval benchmark
 10 queries (keyword, question, long query, filtered, off-topic), each repeated 20 times after a warm-up, on a warm GPU, one query at a time.
@@ -109,7 +109,7 @@ Top similarity scores were about 0.5 to 0.7 for on-topic queries and 0.21 to 0.2
 ### Known limitations
 - One chunk exceeds the model's 256-token limit and is truncated.
 - About 33% of consecutive chunk pairs have no overlap, mostly because their last sentence is longer than the overlap.
-- Filtered search is about 8 times slower than unfiltered search in this setup. The cause was not investigated.
+- Filtered queries took 25 to 27 ms in the ChromaDB search step versus 3 to 4 ms for unfiltered queries. These were different queries, so this is not a controlled comparison, and the cause was not investigated.
 - Relevance was only inspected by eye on 10 queries (by title). Formal Precision/Recall evaluation comes in a later week.
 - Latency was measured on one laptop, one query at a time, so it says nothing about concurrent load.
 
