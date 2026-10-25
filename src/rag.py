@@ -173,7 +173,7 @@ class RAGPipeline:
                 status, answer, error = "error", ERROR_MESSAGE, str(e)
             else:
                 timings["llm_ms"] = _ms(t)
-                tokens = {"prompt": result.prompt_tokens, "completion": result.completion_tokens}
+                tokens = {"prompt": result.prompt_tokens, "completion": result.completion_tokens, "attempts": result.attempts}
                 answer = result.text
                 if _is_refusal(answer):
                     status = "refused_by_model"

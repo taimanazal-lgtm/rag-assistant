@@ -58,7 +58,8 @@ def print_response(r):
 
 
 def run_demo(pipe):
-    pipe.model.encode("warm up")  # warm up the GPU so the first query is not slower
+    warm = pipe.model.encode("warm up")  # warm up the GPU and the ChromaDB index
+    pipe.collection.query(query_embeddings=[warm.tolist()], n_results=1)
     rows = []
     for category, question in DEMO_QUESTIONS:
         r = pipe.ask(question)

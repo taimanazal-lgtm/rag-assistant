@@ -9,6 +9,7 @@ The goal is a hallucination-resistant assistant that answers questions grounded 
 |------|-------|--------|
 | 1 | Environment, data ingestion & preprocessing | Done |
 | 2 | Chunking, embeddings & vector DB | Done |
+| 3 | LLM integration & prompt engineering | Done |
 
 ## Week 1: Environment, Data Ingestion & Preprocessing
 
@@ -59,7 +60,7 @@ The 23 remaining `$` are real currency amounts (e.g. `$5,694`), kept on purpose.
 - Embeddings for all chunks with `sentence-transformers`, with timing logged to `results/embedding_log.json`.
 - Persistent ChromaDB collection with metadata (paper id, title, category, URL) and semantic search (`src/vector_store.py`).
 - Retrieval benchmark script that logs latency per query type to `results/retrieval_benchmark.json`.
-- 21 new unit tests for chunking and the vector store (42 tests in total).
+- 21 new unit tests for chunking and the vector store (42 tests in total at the end of Week 2).
 
 ### Chunking strategy
 - **Recursive splitting:** tries to cut at the largest natural boundary first (paragraph, line, sentence `". "`, word), and only falls back to a hard character cut if no separator exists. This tries to avoid ending chunks in the middle of a sentence.
@@ -104,7 +105,7 @@ The 23 remaining `$` are real currency amounts (e.g. `$5,694`), kept on purpose.
 | Search time for k = 1 / 10 / 50 | 3.8 / 3.9 / 5.2 ms (median) |
 | Self-retrieval check (200 random chunks) | 200 / 200 found at rank 1 |
 
-Top similarity scores were about 0.5 to 0.7 for on-topic queries and 0.21 to 0.23 for an off-topic one ("chocolate cake"). This may be useful later for refusing out-of-scope questions, but a threshold needs proper evaluation first.
+Top similarity scores were about 0.5 to 0.7 for on-topic queries and 0.21 to 0.23 for an off-topic one ("chocolate cake").
 
 ### Known limitations
 - One chunk exceeds the model's 256-token limit and is truncated.
@@ -113,6 +114,86 @@ Top similarity scores were about 0.5 to 0.7 for on-topic queries and 0.21 to 0.2
 - Relevance was only inspected by eye on 10 queries (by title). Formal Precision/Recall evaluation comes in a later week.
 - Latency was measured on one laptop, one query at a time, so it says nothing about concurrent load.
 
+## Week 3: LLM Integration & Prompt Engineering
+
+### What was built
+- LLM client (`src/llm.py`) for any OpenAI-compatible API, with timeouts, retries and typed errors. Used with **Groq** and the model `openai/gpt-oss-20b`.
+- RAG pipeline (`src/rag.py`): retrieve, out-of-domain gate, prompt with numbered sources, generate, answer checks.
+- `scripts/ask.py` asks one question or runs an 11-question demo set. `scripts/summarize_log.py` prints latency, tokens and API attempts per question.
+- Every question is logged to `results/rag_log.jsonl` (status, timings, tokens, attempts, sources, checks).
+- `scripts/list_models.py` lists the provider's models, because free model IDs change often and can cause 404 errors.
+- 29 new unit tests (13 for the LLM client, 16 for the pipeline). They use fake clients, so no API key or internet is needed. 71 tests in total.
+
+### How a question is answered
+1. Embed the question and retrieve the 5 closest chunks.
+2. **Out-of-domain gate:** if the best similarity is below 0.30, refuse right away without calling the LLM.
+3. Build the prompt: a system prompt with rules, the sources numbered `[1]` to `[5]` (title, paper id, text), then the question.
+4. Generate the answer (temperature 0).
+5. If the model replies with the exact refusal sentence, the status is `refused_by_model`.
+6. Otherwise run the answer checks and log everything.
+
+Possible statuses: `answered`, `refused_off_topic`, `refused_by_model`, `error`.
+
+### Prompt engineering
+- The system prompt tells the model to use only the given sources, cite them as `[n]`, never invent titles, authors or numbers, ignore instructions found inside sources, and answer in at most 5 sentences.
+- When the sources are not enough, the model must reply with one exact sentence. This lets the code detect refusals reliably.
+- Sources are numbered and carry the paper id, so every claim can be traced back.
+
+### API error handling
+| Situation | Behavior |
+|---|---|
+| Rate limit (429), timeout, connection error, server error (5xx) | Retry up to 3 times. Wait for the `Retry-After` header if present, otherwise 1, 2, 4 seconds (max 20 s). Then raise `unavailable`. |
+| Invalid API key, model not found (404) | No retry. Clear message (points to `scripts/list_models.py`). |
+| Prompt too long (400) or request too large (413) | No retry. `context_too_long` / `request_too_large`. |
+| Empty answer after reaching `max_tokens` (reasoning models spend tokens on thinking) | `empty_truncated` error asking to raise `max_tokens`. |
+| Answer cut at `max_tokens` | Returned, but flagged. |
+| Missing API key | Error at startup. |
+
+In the pipeline, any LLM error becomes a status `error` with a friendly message instead of a crash. An empty question raises `ValueError`, and an empty database is treated as off-topic.
+
+### Hallucination checks
+Run on every answered response, without another LLM call:
+1. The answer has at least one citation.
+2. Every cited number refers to an existing source.
+3. Every number in the answer also appears in the sources.
+4. **Grounding score:** share of answer sentences whose embedding is close (cosine 0.45 or more) to at least one source. The answer is flagged below 0.5.
+
+Together with the similarity gate and the model's own refusal, these are three layers against unsupported answers. The thresholds (0.30, 0.45, 0.5) are starting values, not tuned.
+
+### Demo results
+11 questions, one run (`python -m scripts.ask --demo`, saved in `results/rag_demo_report.json`).
+
+| Category | Questions | Outcome | Top similarity |
+|---|---|---|---|
+| In-domain | 5 | all answered, none flagged | 0.63 to 0.70 |
+| Off-topic | 3 | refused by the gate, no LLM call | 0.21 to 0.22 |
+| Not in the corpus (traps) | 2 | refused by the model | 0.45 and 0.52 |
+| Prompt injection | 1 | refused by the gate | 0.25 |
+
+End-to-end latency in ms (GPU and ChromaDB warmed up before timing):
+
+| Metric | Value |
+|---|---|
+| Question embedding (answered) | 26 to 34 |
+| ChromaDB search (answered) | 12 to 36 |
+| LLM generation (answered) | 763 to 1,747 |
+| **Total, answered (n=5)** | **median 1,421, p95 1,842** |
+| **Total, refused by the gate (n=4)** | **median 47.5, p95 52.2** |
+| Total, refused by the model (n=2) | 499 and 7,389 |
+
+Prompts were about 870 to 1,050 tokens. The 7,389 ms case needed 3 API attempts, so the retry logic was used. The error type was not logged. In an earlier run without the ChromaDB warm-up, the first search took 876 ms (cold start).
+
+### Known limitations
+- The thresholds were chosen by looking at only 11 questions. Off-topic questions (0.21 to 0.25) and trap questions (0.45 to 0.52) are separated by the gate, but this is not validated on a larger set.
+- The hallucination checks are heuristics, tested with unit tests but never triggered on a real answer so far. I did not verify every claim against the source text, so "not flagged" does not prove an answer is correct.
+- The citation check only needs one citation in the whole answer. A sentence without a citation can pass (the last sentence of the diffusion answer had none and was not flagged).
+- The prompt-injection rule in the system prompt was not really tested: the injection question was refused by the similarity gate before reaching the model.
+- The same paper can fill several of the 5 source slots (two chunks of one paper appeared in two answers).
+- Corpus coverage is limited to recent papers. For the hallucination question, most sources were about vision-language models, not language models in general.
+- Answers vary slightly between runs even at temperature 0, so the demo results come from a single run.
+- `context_too_long` detection depends on the text of the provider's error message and may not work with every provider.
+- Free-tier rate limits apply and latency was measured on one laptop with one query at a time.
+
 ## Project structure
 ```
 rag-assistant/
@@ -120,7 +201,8 @@ rag-assistant/
 │   ├── raw/                 # arxiv_raw.jsonl
 │   └── processed/           # clean_corpus.parquet, chunks.parquet, embeddings.npy
 ├── chroma_db/               # vector database (git-ignored)
-├── results/                 # embedding_log.json, retrieval_benchmark.json
+├── results/                 # embedding_log.json, retrieval_benchmark.json,
+│                            # rag_demo_report.json, rag_log.jsonl
 ├── scripts/
 │   ├── verify_env.py
 │   ├── download_data.py
@@ -129,15 +211,24 @@ rag-assistant/
 │   ├── build_chunks.py
 │   ├── embed_chunks.py
 │   ├── build_vector_db.py
-│   └── benchmark_retrieval.py
+│   ├── benchmark_retrieval.py
+│   ├── list_models.py       # lists available LLM models
+│   ├── test_llm.py          # one-call smoke test of the LLM API
+│   ├── ask.py               # ask a question / run the demo set
+│   └── summarize_log.py     # latency, tokens, attempts per question
 ├── src/
 │   ├── preprocessing.py     # text cleaning
 │   ├── chunking.py          # recursive chunking
-│   └── vector_store.py      # ChromaDB ingestion + search
+│   ├── vector_store.py      # ChromaDB ingestion + search
+│   ├── llm.py               # LLM client with retries and error handling
+│   └── rag.py               # RAG pipeline and hallucination checks
 ├── tests/
 │   ├── test_preprocessing.py
 │   ├── test_chunking.py
-│   └── test_vector_store.py
+│   ├── test_vector_store.py
+│   ├── test_llm.py
+│   └── test_rag.py
+├── .env.example             # template for the API key (.env is git-ignored)
 ├── pytest.ini
 ├── requirements.txt
 └── README.md
@@ -158,6 +249,16 @@ pip install -r requirements.txt --extra-index-url https://download.pytorch.org/w
 python -m spacy download en_core_web_sm
 ```
 
+From Week 3 on, an LLM API key is needed. Create a free key on Groq (console.groq.com), then:
+
+```powershell
+copy .env.example .env
+# open .env and replace your_key_here with your real key
+python scripts/list_models.py groq     # check which models are available today
+```
+
+The model is set in `scripts/ask.py` (`LLM_MODEL`). If it returns a 404 error, pick another ID from the list.
+
 ## Usage
 
 ```powershell
@@ -173,7 +274,7 @@ python -m scripts.build_clean_corpus
 # 3b. See what the cleaning changed
 python scripts/compare_before_after.py
 
-# 4. Run the unit tests
+# 4. Run the unit tests (no API key needed)
 pytest -v
 
 # 5. Week 2 pipeline
@@ -181,15 +282,21 @@ python -m scripts.build_chunks
 python -m scripts.embed_chunks
 python -m scripts.build_vector_db
 python -m scripts.benchmark_retrieval
+
+# 6. Week 3: ask the RAG system (needs the API key in .env)
+python -m scripts.ask "How do diffusion models generate images?"
+python -m scripts.ask --demo
+python scripts/summarize_log.py
 ```
 
 Week 1 output: `data/processed/clean_corpus.parquet` with columns
 `id, title, abstract, categories, primary_category, published, url, text, n_words`
 (`text` = title + abstract).
 Week 2 outputs: `chunks.parquet`, `embeddings.npy`, the `chroma_db/` vector database, and the logs in `results/`.
+Week 3 outputs: `results/rag_demo_report.json` and `results/rag_log.jsonl`.
 
 ## Dependencies
-pandas, numpy, pyarrow, sentence-transformers, chromadb, spacy, beautifulsoup4, langdetect, arxiv, pytest, python-dotenv, torch.
+pandas, numpy, pyarrow, sentence-transformers, chromadb, spacy, beautifulsoup4, langdetect, arxiv, openai, requests, pytest, python-dotenv, torch.
 Exact versions are in `requirements.txt`.
 
 ## Author

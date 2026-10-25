@@ -2,20 +2,20 @@
   "summary": {
     "answered": {
       "n": 5,
-      "total_ms_p50": 1129.1,
-      "total_ms_p95": 1754.1
+      "total_ms_p50": 1420.6,
+      "total_ms_p95": 1841.6
     },
     "refused_off_topic": {
       "n": 4,
-      "total_ms_p50": 44.8,
-      "total_ms_p95": 50.8
+      "total_ms_p50": 47.5,
+      "total_ms_p95": 52.2
     }
   },
   "results": [
     {
       "category": "in-domain",
       "question": "How do large language models handle long context windows?",
-      "answer": "Large language models (LLMs) handle long context windows through a mix of architectural, training‑time, and inference‑time strategies.  Hybrid models combine full‑attention with efficient modules such as sliding‑window or gated linear attention to extend context while keeping computation tractable [2].  Training‑free inference methods like Periscope factorize the read by querying a frozen model over local and strided spans arranged on a grid, reducing the need to process the entire context at once [3].  Techniques such as DISCO isolate reasoning from raw context noise, maintaining high accuracy on very long passages and outperforming full‑context baselines while cutting inference costs [4].  Finally, harnesses that strategically process context rather than exhaustively read it can dramatically affect both performance and efficiency, as shown by the LongHarness Bench results [5].",
+      "answer": "Large language models (LLMs) handle long context windows through a mix of architectural, training‑time, and inference‑time strategies.  Hybrid models combine full‑attention with efficient modules such as sliding‑window or gated linear attention to extend context while keeping computation tractable [2].  Training‑free inference methods like Periscope factorize the read by querying a frozen model over local and strided spans arranged on a grid, reducing the need to process the entire text at once [3].  Disaggregation approaches such as DISCO separate reasoning from raw context, eliminating context rot and maintaining high accuracy on very long passages while cutting inference costs [4].  Finally, harnesses that strategically process context rather than exhaustively read it can dramatically improve efficiency, as shown by the LongHarness Bench, where the same model performs differently under different harnesses and still achieves strong accuracy [5].",
       "status": "answered",
       "sources": [
         {
@@ -59,15 +59,16 @@
         "reasons": []
       },
       "timings_ms": {
-        "embed_ms": 16.68279990553856,
-        "search_ms": 876.2300000526011,
-        "llm_ms": 762.936900020577,
-        "check_ms": 186.34589994326234,
-        "total_ms": 1842.2318999655545
+        "embed_ms": 34.38270010519773,
+        "search_ms": 26.04669996071607,
+        "llm_ms": 1392.574599944055,
+        "check_ms": 168.40219998266548,
+        "total_ms": 1621.463599964045
       },
       "tokens": {
         "prompt": 997,
-        "completion": 244
+        "completion": 253,
+        "attempts": 1
       },
       "error": null
     },
@@ -117,22 +118,23 @@
         "reasons": []
       },
       "timings_ms": {
-        "embed_ms": 20.995300030335784,
-        "search_ms": 23.099300102330744,
-        "llm_ms": 849.3899999884889,
-        "check_ms": 67.32969998847693,
-        "total_ms": 960.885800071992
+        "embed_ms": 29.753300012089312,
+        "search_ms": 35.90469993650913,
+        "llm_ms": 978.8299999199808,
+        "check_ms": 96.67619992978871,
+        "total_ms": 1141.2657999899238
       },
       "tokens": {
         "prompt": 1047,
-        "completion": 550
+        "completion": 550,
+        "attempts": 1
       },
       "error": null
     },
     {
       "category": "in-domain",
       "question": "How are diffusion models used for image generation?",
-      "answer": "Diffusion models learn a forward process that injects Gaussian noise into an image and a reverse denoising process that can recover realistic samples, allowing them to generate new images from random noise or conditioned inputs such as text or reference images [1][4]. In medical imaging, a multitask diffusion framework can jointly synthesize contrast‑enhanced CT and lumen segmentations, producing anatomically plausible images without contrast agents [5]. For 3D texture generation, a video diffusion transformer is fine‑tuned to operate in texture space, using the image‑to‑texture projection to produce high‑quality, view‑consistent materials across arbitrary geometries [2]. Spectral‑aware diffusion designs incorporate global whitening and energy‑conditioned noise schedules to align the injected noise with the spectral energy of image coefficients while preserving Gaussian transitions, remaining compatible with standard DDPM/DDIM pipelines [3]. Personalized generation methods disentangle foreground and background frequencies to avoid misalignment between text prompts and reference images during denoising, enabling customized image synthesis [4].",
+      "answer": "Diffusion models generate images by learning a reverse denoising process that progressively removes noise added in a forward diffusion chain, often conditioned on text or reference images [1][4]. In medical imaging, a multitask diffusion framework can jointly synthesize contrast‑enhanced CT and corresponding segmentations, producing realistic yet anatomically consistent outputs [5]. For 3D graphics, a video diffusion transformer is fine‑tuned to produce high‑quality materials directly in texture space, leveraging the known image‑to‑texture projection to avoid view‑consistency problems and to generalize across geometries [2]. Spectral‑aware variants introduce global whitening and energy‑conditioned noise schedules that preserve Gaussian transitions while aligning the diffusion process with the spectral structure of natural images, remaining compatible with standard DDPM/DDIM pipelines [3]. These approaches illustrate that diffusion models can be adapted to diverse generation tasks—from personalized text‑driven images to multi‑view material synthesis—by conditioning the denoising process on auxiliary signals and tailoring the noise schedule to the domain.",
       "status": "answered",
       "sources": [
         {
@@ -177,22 +179,23 @@
         "reasons": []
       },
       "timings_ms": {
-        "embed_ms": 35.551599925383925,
-        "search_ms": 11.839900049380958,
-        "llm_ms": 1279.1160999331623,
-        "check_ms": 74.95300006121397,
-        "total_ms": 1401.4975000172853
+        "embed_ms": 28.982199961319566,
+        "search_ms": 17.27399998344481,
+        "llm_ms": 1304.4331999262795,
+        "check_ms": 69.80130006559193,
+        "total_ms": 1420.5774000147358
       },
       "tokens": {
         "prompt": 905,
-        "completion": 992
+        "completion": 1008,
+        "attempts": 1
       },
       "error": null
     },
     {
       "category": "in-domain",
       "question": "How can neural networks be made robust against adversarial attacks?",
-      "answer": "Neural networks can be hardened by training with adversarial examples generated through a probabilistic framework that maximizes a KL‑based lower bound on probabilistic robustness, which serves as a tractable surrogate for true robustness [3][5].  \nThis probabilistic adversarial training recovers a scaled form of conventional adversarial training and consistently improves robustness across experiments [5].  \nAn alternative approach is to use an adaptive trust‑region search such as ATLAS, which actively samples points inside adversarial regions to build representative attack sets and can outperform other query‑based black‑box attacks in limited query budgets [1].  \nFor large language models, robustness can also be evaluated and improved by measuring the Jensen‑Shannon divergence of per‑step outputs under small perturbations and applying calibrated empirical defenses against localized and non‑localized attacks [4].",
+      "answer": "Neural networks can be hardened by training them with **probabilistic adversarial training**, which maximizes a KL‑based lower bound on probabilistic robustness and consistently improves robustness [3][5].  \nThis objective recovers a scaled form of standard adversarial training, giving a probabilistic interpretation and a principled route to robustness improvement [5].  \nIn addition, **adaptive trust‑region methods** such as ATLAS actively sample points inside adversarial regions to build representative attack sets, enabling continuous auditing and revealing robustness gaps more efficiently than prior query‑based attacks [1].  \nTogether, these techniques—probabilistic adversarial training and adaptive sampling—provide practical ways to make neural networks more resilient to adversarial perturbations [1][3][5].",
       "status": "answered",
       "sources": [
         {
@@ -226,7 +229,6 @@
         "cited": [
           1,
           3,
-          4,
           5
         ],
         "invalid_citations": [],
@@ -236,15 +238,16 @@
         "reasons": []
       },
       "timings_ms": {
-        "embed_ms": 34.224300063215196,
-        "search_ms": 21.790900034829974,
-        "llm_ms": 999.4779999833554,
-        "check_ms": 73.57499992940575,
-        "total_ms": 1129.116400028579
+        "embed_ms": 26.280099991708994,
+        "search_ms": 11.832100106403232,
+        "llm_ms": 1747.4837000481784,
+        "check_ms": 111.00009991787374,
+        "total_ms": 1896.6747999656945
       },
       "tokens": {
         "prompt": 1042,
-        "completion": 741
+        "completion": 717,
+        "attempts": 1
       },
       "error": null
     },
@@ -296,15 +299,16 @@
         "reasons": []
       },
       "timings_ms": {
-        "embed_ms": 16.687500057742,
-        "search_ms": 28.186500072479248,
-        "llm_ms": 922.6584000280127,
-        "check_ms": 84.89490009378642,
-        "total_ms": 1052.470299997367
+        "embed_ms": 25.746600003913045,
+        "search_ms": 12.967899907380342,
+        "llm_ms": 762.6211999449879,
+        "check_ms": 86.36149996891618,
+        "total_ms": 887.8041000571102
       },
       "tokens": {
         "prompt": 870,
-        "completion": 351
+        "completion": 351,
+        "attempts": 1
       },
       "error": null
     },
@@ -343,11 +347,11 @@
       "top_similarity": 0.22309952974319458,
       "checks": {},
       "timings_ms": {
-        "embed_ms": 24.119399953633547,
-        "search_ms": 16.763199935667217,
+        "embed_ms": 23.88210000935942,
+        "search_ms": 13.309600064530969,
         "llm_ms": 0.0,
         "check_ms": 0.0,
-        "total_ms": 40.89109995402396
+        "total_ms": 37.2055999469012
       },
       "tokens": {
         "prompt": 0,
@@ -390,11 +394,11 @@
       "top_similarity": 0.2141333818435669,
       "checks": {},
       "timings_ms": {
-        "embed_ms": 27.81110000796616,
-        "search_ms": 23.35610007867217,
+        "embed_ms": 32.291000010445714,
+        "search_ms": 20.04009997472167,
         "llm_ms": 0.0,
         "check_ms": 0.0,
-        "total_ms": 51.180399954319
+        "total_ms": 52.34609998296946
       },
       "tokens": {
         "prompt": 0,
@@ -437,11 +441,11 @@
       "top_similarity": 0.21093177795410156,
       "checks": {},
       "timings_ms": {
-        "embed_ms": 27.739800047129393,
-        "search_ms": 13.109299936331809,
+        "embed_ms": 38.15769997891039,
+        "search_ms": 13.502299902029335,
         "llm_ms": 0.0,
         "check_ms": 0.0,
-        "total_ms": 40.87549995165318
+        "total_ms": 51.67489999439567
       },
       "tokens": {
         "prompt": 0,
@@ -484,15 +488,16 @@
       "top_similarity": 0.5152642726898193,
       "checks": {},
       "timings_ms": {
-        "embed_ms": 17.97939999960363,
-        "search_ms": 15.834799967706203,
-        "llm_ms": 5138.353199930862,
+        "embed_ms": 30.350400018505752,
+        "search_ms": 16.56320004258305,
+        "llm_ms": 451.9797000102699,
         "check_ms": 0.0,
-        "total_ms": 5172.186100040562
+        "total_ms": 498.9194000372663
       },
       "tokens": {
         "prompt": 1003,
-        "completion": 168
+        "completion": 168,
+        "attempts": 1
       },
       "error": null
     },
@@ -531,15 +536,16 @@
       "top_similarity": 0.44559186697006226,
       "checks": {},
       "timings_ms": {
-        "embed_ms": 32.367800013162196,
-        "search_ms": 25.833900086581707,
-        "llm_ms": 9284.854300087318,
+        "embed_ms": 31.990500050596893,
+        "search_ms": 17.802299931645393,
+        "llm_ms": 7338.784100022167,
         "check_ms": 0.0,
-        "total_ms": 9343.074699980207
+        "total_ms": 7388.597099925391
       },
       "tokens": {
         "prompt": 974,
-        "completion": 124
+        "completion": 124,
+        "attempts": 3
       },
       "error": null
     },
@@ -578,11 +584,11 @@
       "top_similarity": 0.24711763858795166,
       "checks": {},
       "timings_ms": {
-        "embed_ms": 18.497399985790253,
-        "search_ms": 30.17299994826317,
+        "embed_ms": 30.321500031277537,
+        "search_ms": 12.963799992576241,
         "llm_ms": 0.0,
         "check_ms": 0.0,
-        "total_ms": 48.681900021620095
+        "total_ms": 43.301799916662276
       },
       "tokens": {
         "prompt": 0,
