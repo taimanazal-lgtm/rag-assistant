@@ -14,6 +14,7 @@ import torch
 from sentence_transformers import SentenceTransformer
 
 from src.llm import LLMClient
+from src.filters import build_where
 from src.rag import RAGPipeline
 from src.vector_store import get_collection
 
@@ -50,7 +51,7 @@ def print_response(r):
     print(f"A: {r.answer}")
     if r.status == "answered":
         for i, s in enumerate(r.sources, 1):
-            print(f"  [{i}] {s['title'][:70]} ({s['doc_id']}) sim={s['similarity']:.3f}")
+            print(f"  [{i}] {s['title'][:70]} ({s['doc_id']}) sim={s['similarity']:.3f} | topic: {s.get('topic_label', '-')}")
         if r.checks.get("flagged"):
             print("  WARNING:", "; ".join(r.checks["reasons"]))
     if r.error:
@@ -102,6 +103,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("question", nargs="*", help="a question to ask")
     parser.add_argument("--demo", action="store_true", help="run the demo question set")
+    parser.add_argument("--topic", type=int, help="only search inside this topic id")
+    parser.add_argument("--strict-topic", action="store_true",
+                        help="with --topic: only documents HDBSCAN placed in the topic itself")
+    parser.add_argument("--category", help="only search this arXiv category, e.g. cs.CV")
+    parser.add_argument("--sentiment", choices=["positive", "neutral", "negative"],
+                        help="only search documents with this sentiment")
     args = parser.parse_args()
 
     if not args.demo and not args.question:
@@ -111,7 +118,10 @@ def main():
     if args.demo:
         run_demo(pipe)
     else:
-        print_response(pipe.ask(" ".join(args.question)))
+        where = build_where(args.topic, args.category, args.sentiment, args.strict_topic)
+        if where:
+            print("Filter:", where)
+        print_response(pipe.ask(" ".join(args.question), where=where))
 
 
 if __name__ == "__main__":

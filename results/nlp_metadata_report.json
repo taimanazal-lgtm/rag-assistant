@@ -1,0 +1,12 @@
+{
+  "outlier_share_before": 0.4511,
+  "outlier_share_after": 0.1228,
+  "outlier_assignment_threshold": 0.5773,
+  "sentiment_counts": {
+    "positive": 5263,
+    "neutral": 1584,
+    "negative": 1229
+  },
+  "sentiment_score_mean": 0.1117,
+  "sentiment_score_median": 0.111
+}

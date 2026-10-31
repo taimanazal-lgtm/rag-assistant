@@ -141,7 +141,7 @@ class RAGPipeline:
     def _embed(self, texts):
         return self.model.encode(texts, normalize_embeddings=True)
 
-    def ask(self, question):
+    def ask(self, question, where=None):
         question = (question or "").strip()
         if not question:
             raise ValueError("question must not be empty")
@@ -156,7 +156,7 @@ class RAGPipeline:
         timings["embed_ms"] = _ms(t)
 
         t = time.perf_counter()
-        sources = search_by_embedding(self.collection, query_emb, self.k)
+        sources = search_by_embedding(self.collection, query_emb, self.k, where)
         timings["search_ms"] = _ms(t)
         top = sources[0]["similarity"] if sources else None
 

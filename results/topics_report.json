@@ -1,0 +1,12 @@
+{
+  "n_documents": 8076,
+  "n_topics": 64,
+  "outlier_share": 0.4511,
+  "topic_size_min": 30,
+  "topic_size_median": 59.5,
+  "topic_size_max": 201,
+  "min_cluster_size": 30,
+  "min_samples": 5,
+  "cluster_selection_method": "leaf",
+  "seed": 42
+}
