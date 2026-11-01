@@ -10,6 +10,7 @@ The goal is a hallucination-resistant assistant that answers questions grounded 
 | 1 | Environment, data ingestion & preprocessing | Done |
 | 2 | Chunking, embeddings & vector DB | Done |
 | 3 | LLM integration & prompt engineering | Done |
+| 4 | NLP analysis (topics & sentiment) | Done |
 
 ## Week 1: Environment, Data Ingestion & Preprocessing
 
@@ -89,7 +90,7 @@ The 23 remaining `$` are real currency amounts (e.g. `$5,694`), kept on purpose.
 ### ChromaDB
 - `PersistentClient` stored in `chroma_db/` (git-ignored), cosine distance.
 - Ingestion uses `upsert` in batches of 1,000 (22 s for all chunks), so running it twice never creates duplicates.
-- Metadata: `doc_id`, `chunk_index`, `title`, `categories` (stored as one string, since Chroma does not accept lists), `primary_category`, `url`.
+- Metadata: `doc_id`, `chunk_index`, `title`, `categories` (stored as one string, since Chroma does not accept lists), `primary_category`, `url`. Week 4 adds topic and sentiment fields.
 
 **Edge cases handled and tested** (`tests/test_vector_store.py`): re-ingesting the same data, batch ingestion, embeddings/chunks length mismatch, duplicate chunk ids, search on an empty collection, `k` larger than the collection, metadata filter with no match, and empty or `None` queries.
 
@@ -122,7 +123,7 @@ Top similarity scores were about 0.5 to 0.7 for on-topic queries and 0.21 to 0.2
 - `scripts/ask.py` asks one question or runs an 11-question demo set. `scripts/summarize_log.py` prints latency, tokens and API attempts per question.
 - Every question is logged to `results/rag_log.jsonl` (status, timings, tokens, attempts, sources, checks).
 - `scripts/list_models.py` lists the provider's models, because free model IDs change often and can cause 404 errors.
-- 29 new unit tests (13 for the LLM client, 16 for the pipeline). They use fake clients, so no API key or internet is needed. 71 tests in total.
+- 29 new unit tests (13 for the LLM client, 16 for the pipeline). They use fake clients, so no API key or internet is needed. 71 tests in total at the end of Week 3.
 
 ### How a question is answered
 1. Embed the question and retrieve the 5 closest chunks.
@@ -194,15 +195,96 @@ Prompts were about 870 to 1,050 tokens. The 7,389 ms case needed 3 API attempts,
 - `context_too_long` detection depends on the text of the provider's error message and may not work with every provider.
 - Free-tier rate limits apply and latency was measured on one laptop with one query at a time.
 
+## Week 4: NLP Analysis (Topics & Sentiment)
+
+### What was built
+- Topic modeling with BERTopic over the 8,076 papers (`scripts/run_topics.py`), with reports in `results/topics_report.json` and `results/topic_review.csv`.
+- VADER sentiment scores and nearest-topic assignment for papers without a topic (`scripts/build_nlp_metadata.py`, helpers in `src/nlp.py`).
+- Topic and sentiment metadata written into ChromaDB for all 21,967 chunks (`scripts/add_nlp_metadata.py`), without recomputing embeddings.
+- Filtered retrieval: `src/filters.py` builds the ChromaDB filter and `scripts/ask.py` accepts `--topic`, `--strict-topic`, `--category` and `--sentiment` (`RAGPipeline.ask(question, where=...)`).
+- Hand evaluation: 64 topics rated for coherence (`labels/topic_coherence.csv`) and 50 abstracts labeled for sentiment (`labels/sentiment_labels.csv`).
+- 23 new unit tests (94 in total).
+
+### Topic modeling
+- **Document vectors:** the average of each paper's chunk embeddings from Week 2, so all of its text is used (no truncation).
+- **Pipeline:** UMAP (5 dimensions, cosine, seed 42, cached on disk), HDBSCAN (`min_cluster_size=30`, `min_samples=5`, `leaf` selection), then BERTopic's c-TF-IDF over unigrams and bigrams with English stop words removed.
+- **First configuration failed:** `eom` clustering with `min_df=5` crashed with a vectorizer error, most likely because HDBSCAN returned very few topics (not verified). The final setup uses `leaf` and no `min_df`, because the vectorizer sees one document per topic and `min_df` would drop topic-specific words.
+- **Result:** 64 topics (size 30 to 201, median 60). Examples: agents, 3D Gaussian splatting, time-series forecasting, KV cache, quantum.
+- **Unassigned papers:** HDBSCAN left **45.1%** of the papers without a topic (`-1`). Each of them gets its nearest topic (cosine similarity to the topic centroid) only if it is at least as close as the 10th percentile of real members (threshold 0.577). After this, **12.3%** stay unassigned. The metadata keeps a `topic_strict` flag, so `--strict-topic` searches only papers HDBSCAN placed itself.
+- **Sanity check of the filled assignments** (`scripts/check_filled_topics.py`): 57.0% of nearest-topic papers share the main arXiv category of their topic, against 61.6% of the original members. The original members' figure is slightly inflated (the main category was computed from them), and arXiv categories overlap, so this is only a rough check, not an accuracy.
+
+### Hand evaluation of topics
+All 64 topics were rated by reading the top words and 3 example titles of each topic:
+
+| Rating | Topics |
+|---|---|
+| good | 59 (92.2% of topics) |
+| mixed | 5 (topics 11, 20, 34, 56, 59) |
+| bad | 0 |
+
+93.4% of the documents that belong to a topic are in a topic rated good (`scripts/summarize_topic_ratings.py`, `results/topic_ratings.json`).
+
+In the mixed topics, some example titles do not match the top words. For example, topic 34 has "moe, experts" among its words, but two of its three example titles are about traffic control and edge inference. Because only three titles per topic were read, and there was a single rater, the share of good topics may be optimistic.
+
+### Edge cases
+- **Short documents:** after cleaning, every paper has at least 42 words, and each one is represented by all of its chunks. Empty text in the sentiment step returns a neutral score (unit tested).
+- **Jargon and acronyms:** acronyms and coined terms appear as top words (e.g. `opd`, `jev`) and cannot be understood from the words alone; the example titles were needed to interpret them. Stop words are removed and bigrams are kept (`gaussian splatting`, `kv cache`).
+- **Unassigned papers:** handled as described above, with a flag to separate them.
+- **Filters:** topic `0` is a valid id (unit tested), and an invalid sentiment or `--strict-topic` without `--topic` raises an error.
+
+### Sentiment
+- VADER (`vaderSentiment`): the compound score is computed sentence by sentence and averaged. At or above +0.05 is positive, at or below -0.05 is negative, otherwise neutral.
+- On the whole corpus: 5,263 positive (65.2%), 1,584 neutral (19.6%), 1,229 negative (15.2%). Mean score 0.11.
+- **Label definition used for the 50 hand labels:** *negative* = the main message of the abstract is the danger, vulnerability or persistent failure of something; *positive* = the main message is a new method or tool presented as a success over earlier work; *neutral* = neither of the two (descriptive or analytical). This is closer to "problem versus solution" than to ordinary sentiment.
+- Borderline example: `2609.34970v1` presents a mitigation, but its main message is that behavioral safety is an illusion, so it was labeled negative. Another labeler could choose positive.
+
+| Evaluation against 50 hand labels | Result |
+|---|---|
+| Labels (positive / neutral / negative) | 39 / 5 / 6 |
+| Accuracy | 58.0% (95% interval 44.2% to 70.6%) |
+| Baseline "always positive" | 78.0% accuracy, macro F1 about 0.29 |
+| VADER macro F1 | 0.38 |
+
+| Hand label \ VADER | positive | neutral | negative |
+|---|---|---|---|
+| positive | 26 | 9 | 4 |
+| neutral | 2 | 1 | 2 |
+| negative | 3 | 1 | 2 |
+
+Precision / recall: positive 0.84 / 0.67, neutral 0.09 / 0.20, negative 0.25 / 0.33.
+
+**Conclusion:** VADER scores below the always-positive baseline in accuracy and is only slightly better in macro F1. It measures the polarity of words, not the main message of an abstract, so low agreement with this definition is expected. **The sentiment metadata is not reliable enough to filter on.** It is kept in the database and documented, but not recommended.
+
+### How the labels were made
+Both label sets (topic coherence and sentiment) were made with the help of an AI assistant. The sentiment accuracy above is therefore the agreement between VADER and these labels, not an independent human ground truth. No second labeler was involved, so agreement between labelers was not measured.
+
+### Filtered retrieval
+```powershell
+python -m scripts.ask --topic 13 "How are time series forecasted?"
+python -m scripts.ask --category cs.CV --sentiment negative "How are models attacked?"
+```
+- Number of chunks matching a filter: topic 2 has 862, sentiment negative has 3,344, category cs.CV has 5,671.
+- With `--topic 13`, all five sources came from topic 13 (forecasting, series, time series) and the question was answered (top similarity 0.55).
+- `--category cs.CV --sentiment negative` and the same query with `--sentiment positive` both returned papers about attacks (top similarity 0.42 and 0.47). So the sentiment filter did not visibly change what was retrieved, which matches the evaluation above. Topic and category filters work as expected.
+
+### Known limitations
+- 12.3% of the papers still have no topic, and the nearest-topic assignment was checked only with the rough category comparison above.
+- Topic ratings are subjective: one rater, top words and three titles per topic.
+- The 50 sentiment labels are few and unbalanced (only 5 neutral and 6 negative), so the per-class numbers are unstable, and the labels depend on a definition with borderline cases.
+- VADER does not capture the main message of an abstract (see above); a model trained for this kind of text, or an LLM judge, would be a better next step.
+- The topic model describes this corpus snapshot. New papers would need a new run.
+- The same paper can still fill several of the retrieved source slots (Week 3 limitation).
+- The latency of filtered queries was not measured again in this week, and the answer-quality checks of Week 3 were not repeated with filters.
+
 ## Project structure
 ```
 rag-assistant/
 ├── data/                    # git-ignored
 │   ├── raw/                 # arxiv_raw.jsonl
-│   └── processed/           # clean_corpus.parquet, chunks.parquet, embeddings.npy
+│   └── processed/           # clean_corpus, chunks, embeddings, doc_topics, doc_nlp, doc_umap
 ├── chroma_db/               # vector database (git-ignored)
-├── results/                 # embedding_log.json, retrieval_benchmark.json,
-│                            # rag_demo_report.json, rag_log.jsonl
+├── labels/                  # hand labels: topic_coherence.csv, sentiment_labels.csv
+├── results/                 # reports and logs (json, csv, jsonl)
 ├── scripts/
 │   ├── verify_env.py
 │   ├── download_data.py
@@ -212,22 +294,33 @@ rag-assistant/
 │   ├── embed_chunks.py
 │   ├── build_vector_db.py
 │   ├── benchmark_retrieval.py
-│   ├── list_models.py       # lists available LLM models
-│   ├── test_llm.py          # one-call smoke test of the LLM API
-│   ├── ask.py               # ask a question / run the demo set
-│   └── summarize_log.py     # latency, tokens, attempts per question
+│   ├── list_models.py
+│   ├── test_llm.py
+│   ├── ask.py
+│   ├── summarize_log.py
+│   ├── run_topics.py
+│   ├── build_nlp_metadata.py
+│   ├── check_filled_topics.py
+│   ├── add_nlp_metadata.py
+│   ├── make_label_set.py
+│   ├── evaluate_sentiment.py
+│   └── summarize_topic_ratings.py
 ├── src/
 │   ├── preprocessing.py     # text cleaning
 │   ├── chunking.py          # recursive chunking
 │   ├── vector_store.py      # ChromaDB ingestion + search
 │   ├── llm.py               # LLM client with retries and error handling
-│   └── rag.py               # RAG pipeline and hallucination checks
+│   ├── rag.py               # RAG pipeline and hallucination checks
+│   ├── nlp.py               # sentiment and topic helpers
+│   └── filters.py           # ChromaDB filters from topic / category / sentiment
 ├── tests/
 │   ├── test_preprocessing.py
 │   ├── test_chunking.py
 │   ├── test_vector_store.py
 │   ├── test_llm.py
-│   └── test_rag.py
+│   ├── test_rag.py
+│   ├── test_nlp.py
+│   └── test_filters.py
 ├── .env.example             # template for the API key (.env is git-ignored)
 ├── pytest.ini
 ├── requirements.txt
@@ -287,6 +380,16 @@ python -m scripts.benchmark_retrieval
 python -m scripts.ask "How do diffusion models generate images?"
 python -m scripts.ask --demo
 python scripts/summarize_log.py
+
+# 7. Week 4: NLP analysis
+python -m scripts.run_topics
+python -m scripts.build_nlp_metadata
+python -m scripts.check_filled_topics
+python -m scripts.add_nlp_metadata        # needs the ChromaDB from Week 2
+python scripts/make_label_set.py          # creates labels/sentiment_labels.csv (never overwrites it)
+python scripts/evaluate_sentiment.py      # after filling the label column by hand
+python scripts/summarize_topic_ratings.py # after filling labels/topic_coherence.csv
+python -m scripts.ask --topic 13 "How are time series forecasted?"
 ```
 
 Week 1 output: `data/processed/clean_corpus.parquet` with columns
@@ -294,9 +397,10 @@ Week 1 output: `data/processed/clean_corpus.parquet` with columns
 (`text` = title + abstract).
 Week 2 outputs: `chunks.parquet`, `embeddings.npy`, the `chroma_db/` vector database, and the logs in `results/`.
 Week 3 outputs: `results/rag_demo_report.json` and `results/rag_log.jsonl`.
+Week 4 outputs: `data/processed/doc_topics.parquet`, `doc_nlp.parquet`, the topic and sentiment metadata inside `chroma_db/`, and the reports in `results/` and `labels/`.
 
 ## Dependencies
-pandas, numpy, pyarrow, sentence-transformers, chromadb, spacy, beautifulsoup4, langdetect, arxiv, openai, requests, pytest, python-dotenv, torch.
+pandas, numpy, pyarrow, sentence-transformers, chromadb, spacy, beautifulsoup4, langdetect, arxiv, openai, requests, pytest, python-dotenv, torch, bertopic, umap-learn, hdbscan, scikit-learn, vaderSentiment.
 Exact versions are in `requirements.txt`.
 
 ## Author

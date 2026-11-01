@@ -1,0 +1,17 @@
+{
+  "n_topics": 64,
+  "counts": {
+    "good": 59,
+    "mixed": 5,
+    "bad": 0
+  },
+  "share_topics_good": 0.9219,
+  "share_documents_in_good_topics": 0.9344,
+  "not_good_topic_ids": [
+    11,
+    20,
+    34,
+    56,
+    59
+  ]
+}
